@@ -7,8 +7,6 @@ import React, {
   useState,
 } from "react";
 
-import type { AdTargeting } from "./Ad";
-
 /**
  * Component responsible for loading the GPT script and setting the global configuration
  * Note: This component should be rendered in _app.tsx
@@ -16,6 +14,43 @@ import type { AdTargeting } from "./Ad";
  *   <Component {...pageProps} />
  * </AdManager>
  */
+
+export type AdTargeting = {
+  [key: string]: string | string[];
+};
+
+type SlotMapValue = {
+  displayed: boolean;
+  // In future more props will be added:
+  // - requested
+  // - viewports
+};
+
+export type SetUpSlotOpsType = {
+  adUnitPath: string;
+  sizes: googletag.MultiSize;
+  sizeMapping?: googletag.SizeMappingArray;
+  targeting?: AdTargeting;
+};
+
+type SetUpSlotType = (id: string, ops: SetUpSlotOpsType) => void;
+
+type DisplayType = (id: string) => void;
+
+type DestroyType = (id: string) => void;
+
+interface AdManagerContextInterface {
+  destroy: DestroyType;
+  display: DisplayType;
+  isGptEnabled: boolean;
+  setUpSlot: SetUpSlotType;
+}
+
+type AdManagerProps = {
+  children: ReactNode;
+  enableSingleRequest?: boolean;
+  enableLazyLoad?: boolean;
+};
 
 const GPT_SCRIPT_URI = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
 
@@ -29,62 +64,12 @@ const LAZY_LOADING_CONFIG = {
   mobileScaling: 2.0,
 };
 
-interface AdManagerContextInterface {
-  destroy: Function;
-  display: Function;
-  isGptEnabled: boolean;
-  setUpSlot: Function;
-}
-
 export const AdManagerContext = React.createContext<AdManagerContextInterface>({
   destroy: () => {},
   display: () => {},
   isGptEnabled: false,
   setUpSlot: () => {},
 });
-
-export const setUpSlot = (
-  id: string,
-  {
-    adUnitPath,
-    sizes,
-    sizeMapping,
-    targeting,
-  }: {
-    adUnitPath: string;
-    sizes: googletag.MultiSize;
-    sizeMapping?: googletag.SizeMappingArray;
-    targeting?: AdTargeting;
-  }
-) => {
-  googletag.cmd.push(function () {
-    if (getSlotById(id)) {
-      // Slot has already been defined
-      return;
-    }
-    // Initialize the ad slot
-    const slot = googletag.defineSlot(adUnitPath, sizes, id);
-
-    if (slot) {
-      // Add pubads to the slot
-      slot.addService(googletag.pubads());
-      // Set up responsive size mappings
-      if (sizeMapping) {
-        let mapping = googletag.sizeMapping();
-        for (const [viewport, sizes] of sizeMapping) {
-          mapping.addSize(viewport, sizes);
-        }
-        slot.defineSizeMapping(mapping.build());
-      }
-      // Add key/value targeting
-      if (targeting) {
-        for (const [key, value] of Object.entries(targeting)) {
-          slot.setTargeting(key, value);
-        }
-      }
-    }
-  });
-};
 
 /**
  * Get the GPT slot by element id
@@ -98,24 +83,52 @@ function getSlotById(id: string): googletag.Slot | undefined {
     .find((slot: googletag.Slot) => slot.getSlotElementId() === id);
 }
 
-type AdManagerProps = {
-  children: ReactNode;
-  enableSingleRequest?: boolean;
-  enableLazyLoad?: boolean;
-};
-
 const AdManager = React.memo(function Ad({
   children,
   enableSingleRequest = true,
   enableLazyLoad = true,
 }: AdManagerProps) {
-  const displayed = useRef(new Set());
+  const slots = useRef(new Map<string, SlotMapValue>());
   const [isEnabled, setIsEnabled] = useState(false);
 
+  const setUpSlot = useCallback<SetUpSlotType>(
+    (id, { adUnitPath, sizes, sizeMapping, targeting }) => {
+      googletag.cmd.push(function () {
+        if (slots.current.has(id)) {
+          // Slot has already been defined
+          return;
+        }
+        // Initialize the ad slot
+        const slot = googletag.defineSlot(adUnitPath, sizes, id);
+
+        if (slot) {
+          // Add pubads to the slot
+          slot.addService(googletag.pubads());
+          // Set up responsive size mappings
+          if (sizeMapping) {
+            let mapping = googletag.sizeMapping();
+            for (const [viewport, sizes] of sizeMapping) {
+              mapping.addSize(viewport, sizes);
+            }
+            slot.defineSizeMapping(mapping.build());
+          }
+          // Add key/value targeting
+          if (targeting) {
+            for (const [key, value] of Object.entries(targeting)) {
+              slot.setTargeting(key, value);
+            }
+          }
+          slots.current.set(id, { displayed: false });
+        }
+      });
+    },
+    []
+  );
+
   // Display a slot
-  const display = useCallback((id: string) => {
+  const display = useCallback<DisplayType>((id) => {
     googletag.cmd.push(function () {
-      if (displayed.current.has(id)) {
+      if (slots.current.get(id)?.displayed) {
         // Slot has already been displayed
         return;
       }
@@ -126,28 +139,34 @@ const AdManager = React.memo(function Ad({
         // Note, in single request mode a call to display will request
         // all of the uninitialized ad slots
         for (const slot of googletag.pubads().getSlots()) {
-          displayed.current.add(slot.getSlotElementId());
+          slots.current.set(slot.getSlotElementId(), {
+            ...slots.current.get(id)!,
+            displayed: true,
+          });
         }
       } else {
-        displayed.current.add(id);
+        slots.current.set(id, {
+          ...slots.current.get(id)!,
+          displayed: true,
+        });
       }
     });
   }, []);
 
   // Destroy a slot
-  const destroy = useCallback((id: string) => {
+  const destroy = useCallback<DestroyType>((id) => {
     googletag.cmd.push(function () {
       const slot = getSlotById(id);
       if (slot) {
         googletag.destroySlots([slot]);
-        displayed.current.delete(id);
+        slots.current.delete(id);
       }
     });
   }, []);
 
   useEffect(() => {
     // React's strict mode will execute useEffect twice in development mode.
-    // It's important that the GPT setup code (and display) is only called once
+    // It's important that the GPT setup code is only called once
     // to avoid a "throttled" warning. In production mode useEffect is only
     // called once.
     let ignore = false;
@@ -168,7 +187,6 @@ const AdManager = React.memo(function Ad({
         }
 
         googletag.enableServices();
-
         setIsEnabled(true);
       }
     });

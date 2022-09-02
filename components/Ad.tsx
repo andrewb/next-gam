@@ -1,13 +1,10 @@
 import React, { useCallback, useContext, useEffect, useRef } from "react";
 import { AdManagerContext } from "./AdManager";
+import type { AdTargeting, SetUpSlotOpsType } from "./AdManager";
 
 /**
  * Component responsible for initializing and rendering a single ad slot
  */
-
-export type AdTargeting = {
-  [key: string]: string | string[];
-};
 
 type AdProps = {
   id: string;
@@ -30,7 +27,7 @@ const Ad = React.memo(function Ad({
   const { isGptEnabled, display, destroy, setUpSlot } =
     useContext(AdManagerContext);
   // Slot values that are set when slot is created
-  const slotOps = useRef({
+  const slotOps = useRef<SetUpSlotOpsType>({
     adUnitPath,
     sizes,
     sizeMapping,
