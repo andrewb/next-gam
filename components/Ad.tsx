@@ -58,7 +58,7 @@ const Ad = React.memo(function Ad({
     <>
       <div
         id={id}
-        style={{ width: `${width}px`, height: `${height}px` }}
+        style={{ minWidth: `${width}px`, minHeight: `${height}px` }}
         ref={initialize}
         data-testid="ad"
       />
