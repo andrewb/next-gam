@@ -41,7 +41,7 @@ describe("<Ad />", () => {
     setup();
     expect(screen.getByTestId("ad")).toHaveAttribute(
       "style",
-      "width: 970px; height: 250px;"
+      "min-width: 970px; min-height: 250px;"
     );
   });
   it("sets up the slot", () => {
