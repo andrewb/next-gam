@@ -100,7 +100,7 @@ function DesktopOnlyAd({ id }: { id: string }) {
         }
         @media screen and (min-width: 768px) {
           .ad-container {
-            display: block;
+            display: flex;
             min-height: 90px;
           }
         }
