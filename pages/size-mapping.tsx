@@ -5,48 +5,51 @@ import styles from "../styles/Page.module.css";
 const DESKTOP_BREAKPOINT: googletag.SingleSizeArray = [1024, 768];
 const TABLET_BREAKPOINT: googletag.SingleSizeArray = [768, 480];
 
-const AD_UNIT_PATH = "/6355419/Travel/Europe/France/Paris";
+const AD_UNIT_PATH = "22806846287/Article";
 
 function FixedSizeAd({ id }: { id: string }) {
   return (
-    <Ad
-      id={id}
-      adUnitPath={AD_UNIT_PATH}
-      sizes={[
-        [970, 250],
-        [728, 90],
-      ]}
-      placeholder={[970, 250]}
-    />
+    <div className="ad-container">
+      <Ad id={id} adUnitPath={AD_UNIT_PATH} sizes={[[970, 250]]} />
+      <style jsx>{`
+        .ad-container {
+          min-height: 250px;
+        }
+      `}</style>
+    </div>
   );
 }
 
 function ResponsiveAd({ id }: { id: string }) {
   return (
-    <Ad
-      id={id}
-      adUnitPath={AD_UNIT_PATH}
-      sizes={[
-        [970, 250],
-        [728, 90],
-        [300, 250],
-      ]}
-      sizeMapping={[
-        [
-          DESKTOP_BREAKPOINT,
-          [
-            [970, 250],
-            [728, 90],
-          ],
-        ],
-        [TABLET_BREAKPOINT, [728, 90]],
-        [
-          [0, 0],
+    <div className="ad-container">
+      <Ad
+        id={id}
+        adUnitPath={AD_UNIT_PATH}
+        sizes={[
+          [728, 90],
           [300, 250],
-        ],
-      ]}
-      placeholder={[970, 250]}
-    />
+        ]}
+        sizeMapping={[
+          [DESKTOP_BREAKPOINT, [[728, 90]]],
+          [TABLET_BREAKPOINT, [728, 90]],
+          [
+            [0, 0],
+            [300, 250],
+          ],
+        ]}
+      />
+      <style jsx>{`
+        .ad-container {
+          min-height: 250px;
+        }
+        @media screen and (min-width: 768px) {
+          .ad-container {
+            min-height: 90px;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
 
@@ -64,9 +67,11 @@ function MobileOnlyAd({ id }: { id: string }) {
           ],
           [TABLET_BREAKPOINT, []],
         ]}
-        placeholder={[300, 250]}
       />
       <style jsx>{`
+        .ad-container {
+          min-height: 250px;
+        }
         @media screen and (min-width: 768px) {
           .ad-container {
             display: none;
@@ -88,7 +93,6 @@ function DesktopOnlyAd({ id }: { id: string }) {
           [DESKTOP_BREAKPOINT, [728, 90]],
           [[0, 0], []],
         ]}
-        placeholder={[728, 90]}
       />
       <style jsx>{`
         .ad-container {
@@ -97,6 +101,7 @@ function DesktopOnlyAd({ id }: { id: string }) {
         @media screen and (min-width: 768px) {
           .ad-container {
             display: block;
+            min-height: 90px;
           }
         }
       `}</style>
@@ -122,6 +127,14 @@ const Sizes: NextPage = () => {
         <h2>Desktop Only</h2>
         <DesktopOnlyAd id="ad-desktop" />
       </main>
+      <style jsx>{`
+        :global(.ad-container) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          max-width: 100%;
+          background: #eee;
+      `}</style>
     </div>
   );
 };

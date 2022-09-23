@@ -22,7 +22,6 @@ function setup({
         id="ad-1"
         adUnitPath="/123/foo/bar"
         sizes={[[970, 250]]}
-        placeholder={[970, 250]}
         targeting={targeting}
       />
     </AdManagerContext.Provider>
@@ -36,13 +35,6 @@ describe("<Ad />", () => {
   it("renders a <div /> with the correct id", () => {
     setup();
     expect(screen.getByTestId("ad")).toHaveAttribute("id", "ad-1");
-  });
-  it("sets a placeholder size", () => {
-    setup();
-    expect(screen.getByTestId("ad")).toHaveAttribute(
-      "style",
-      "min-width: 970px; min-height: 250px;"
-    );
   });
   it("sets up the slot", () => {
     const setUpSlotMock = jest.fn();
