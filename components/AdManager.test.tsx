@@ -6,6 +6,7 @@ describe("<AdManager />", () => {
     // Mock googletag before each test
     window.googletag = {
       pubads: jest.fn(() => ({
+        addEventListener: jest.fn(),
         getSlots: jest.fn(() => {
           return [];
         }),
@@ -46,6 +47,7 @@ describe("<AdManager />", () => {
     jest.spyOn(window.googletag, "pubads").mockImplementation(
       () =>
         ({
+          addEventListener: jest.fn(),
           enableLazyLoad: enableLazyLoadMock,
           enableSingleRequest: jest.fn(),
         } as unknown as googletag.PubAdsService)
@@ -65,6 +67,7 @@ describe("<AdManager />", () => {
     jest.spyOn(window.googletag, "pubads").mockImplementation(
       () =>
         ({
+          addEventListener: jest.fn(),
           enableLazyLoad: enableLazyLoadMock,
           enableSingleRequest: jest.fn(),
         } as unknown as googletag.PubAdsService)
@@ -84,6 +87,7 @@ describe("<AdManager />", () => {
     jest.spyOn(window.googletag, "pubads").mockImplementation(
       () =>
         ({
+          addEventListener: jest.fn(),
           enableLazyLoad: jest.fn(),
           enableSingleRequest: enableSingleRequestMock,
         } as unknown as googletag.PubAdsService)
@@ -103,6 +107,7 @@ describe("<AdManager />", () => {
     jest.spyOn(window.googletag, "pubads").mockImplementation(
       () =>
         ({
+          addEventListener: jest.fn(),
           enableLazyLoad: jest.fn(),
           enableSingleRequest: enableSingleRequestMock,
         } as unknown as googletag.PubAdsService)
@@ -131,10 +136,14 @@ describe("<AdManager />", () => {
         <AdManager>
           <AdManagerContext.Consumer>
             {({ setUpSlot }) => {
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-              });
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                },
+                jest.fn()
+              );
               return null;
             }}
           </AdManagerContext.Consumer>
@@ -151,14 +160,22 @@ describe("<AdManager />", () => {
         <AdManager>
           <AdManagerContext.Consumer>
             {({ setUpSlot }) => {
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-              });
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-              });
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                },
+                jest.fn()
+              );
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                },
+                jest.fn()
+              );
               return null;
             }}
           </AdManagerContext.Consumer>
@@ -178,10 +195,14 @@ describe("<AdManager />", () => {
         <AdManager>
           <AdManagerContext.Consumer>
             {({ setUpSlot }) => {
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-              });
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                },
+                jest.fn()
+              );
               return null;
             }}
           </AdManagerContext.Consumer>
@@ -202,13 +223,17 @@ describe("<AdManager />", () => {
         <AdManager>
           <AdManagerContext.Consumer>
             {({ setUpSlot }) => {
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-                targeting: {
-                  foo: ["bar", "baz"],
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                  targeting: {
+                    foo: ["bar", "baz"],
+                  },
                 },
-              });
+                jest.fn()
+              );
               return null;
             }}
           </AdManagerContext.Consumer>
@@ -229,17 +254,21 @@ describe("<AdManager />", () => {
         <AdManager>
           <AdManagerContext.Consumer>
             {({ setUpSlot }) => {
-              setUpSlot("ad-1", {
-                adUnitPath: "123/foo/bar",
-                sizes: [[300, 250]],
-                sizeMapping: [
-                  [
-                    [1024, 768],
-                    [300, 250],
+              setUpSlot(
+                "ad-1",
+                {
+                  adUnitPath: "123/foo/bar",
+                  sizes: [[300, 250]],
+                  sizeMapping: [
+                    [
+                      [1024, 768],
+                      [300, 250],
+                    ],
+                    [[0, 0], []],
                   ],
-                  [[0, 0], []],
-                ],
-              });
+                },
+                jest.fn()
+              );
               return null;
             }}
           </AdManagerContext.Consumer>

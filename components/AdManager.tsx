@@ -21,6 +21,7 @@ export type AdTargeting = {
 
 type SlotMapValue = {
   displayed: boolean;
+  onRenderEnded: (event: googletag.events.SlotRenderEndedEvent) => void;
   // In future more props will be added:
   // - requested
   // - viewports
@@ -33,7 +34,11 @@ export type SetUpSlotOpsType = {
   targeting?: AdTargeting;
 };
 
-type SetUpSlotType = (id: string, ops: SetUpSlotOpsType) => void;
+type SetUpSlotType = (
+  id: string,
+  ops: SetUpSlotOpsType,
+  onRenderEnded: (event: googletag.events.SlotRenderEndedEvent) => void
+) => void;
 
 type DisplayType = (id: string) => void;
 
@@ -92,7 +97,7 @@ const AdManager = React.memo(function Ad({
   const [isEnabled, setIsEnabled] = useState(false);
 
   const setUpSlot = useCallback<SetUpSlotType>(
-    (id, { adUnitPath, sizes, sizeMapping, targeting }) => {
+    (id, { adUnitPath, sizes, sizeMapping, targeting }, onRenderEnded) => {
       googletag.cmd.push(function () {
         if (slots.current.has(id)) {
           // Slot has already been defined
@@ -118,7 +123,11 @@ const AdManager = React.memo(function Ad({
               slot.setTargeting(key, value);
             }
           }
-          slots.current.set(id, { displayed: false });
+
+          slots.current.set(id, {
+            displayed: false,
+            onRenderEnded,
+          });
         }
       });
     },
@@ -139,8 +148,9 @@ const AdManager = React.memo(function Ad({
         // Note, in single request mode a call to display will request
         // all of the uninitialized ad slots
         for (const slot of googletag.pubads().getSlots()) {
-          slots.current.set(slot.getSlotElementId(), {
-            ...slots.current.get(id)!,
+          const slotId = slot.getSlotElementId();
+          slots.current.set(slotId, {
+            ...slots.current.get(slotId)!,
             displayed: true,
           });
         }
@@ -195,6 +205,19 @@ const AdManager = React.memo(function Ad({
       ignore = true;
     };
   }, [enableSingleRequest, enableLazyLoad]);
+
+  useEffect(() => {
+    if (isEnabled) {
+      googletag.cmd.push(function () {
+        googletag
+          .pubads()
+          .addEventListener("slotRenderEnded", function (event) {
+            const slotId = event.slot.getSlotElementId();
+            slots.current.get(slotId)?.onRenderEnded(event);
+          });
+      });
+    }
+  }, [isEnabled]);
 
   if (typeof window !== "undefined") {
     window.googletag = window.googletag || { cmd: [] };

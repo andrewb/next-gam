@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { AdManagerContext } from "./AdManager";
 import type { AdTargeting, SetUpSlotOpsType } from "./AdManager";
 
@@ -14,6 +20,19 @@ type AdProps = {
   targeting?: AdTargeting;
   placeholder: [number, number];
 };
+
+interface ISlotState {
+  creativeId?: number | null;
+  isEmpty?: boolean;
+  size?: string;
+}
+
+function formattedSize(size: string | number[] | null): string {
+  if (Array.isArray(size)) {
+    return size.join("x");
+  }
+  return size || "none";
+}
 
 const Ad = React.memo(function Ad({
   id,
@@ -33,6 +52,7 @@ const Ad = React.memo(function Ad({
     sizeMapping,
     targeting,
   });
+  const [slotState, setSlotState] = useState<ISlotState>({});
 
   useEffect(() => {
     if (isGptEnabled) {
@@ -43,7 +63,13 @@ const Ad = React.memo(function Ad({
   const initialize = useCallback(
     (el: HTMLElement | null) => {
       if (el) {
-        setUpSlot(id, slotOps.current);
+        setUpSlot(id, slotOps.current, (event) => {
+          setSlotState({
+            isEmpty: event.isEmpty,
+            creativeId: event.creativeId,
+            size: formattedSize(event.size),
+          });
+        });
       } else {
         // Component is being unmounted, destroy the slot
         destroy(id);
@@ -61,6 +87,9 @@ const Ad = React.memo(function Ad({
         style={{ minWidth: `${width}px`, minHeight: `${height}px` }}
         ref={initialize}
         data-testid="ad"
+        data-is-empty={slotState.isEmpty}
+        data-creative-id={slotState.creativeId}
+        data-creative-size={slotState.size}
       />
       <style jsx>{`
         div {

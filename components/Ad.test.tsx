@@ -47,11 +47,15 @@ describe("<Ad />", () => {
   it("sets up the slot", () => {
     const setUpSlotMock = jest.fn();
     setup({ setUpSlot: setUpSlotMock, targeting: { foo: "bar" } });
-    expect(setUpSlotMock).toHaveBeenCalledWith("ad-1", {
-      adUnitPath: "/123/foo/bar",
-      sizes: [[970, 250]],
-      targeting: { foo: "bar" },
-    });
+    expect(setUpSlotMock).toHaveBeenCalledWith(
+      "ad-1",
+      {
+        adUnitPath: "/123/foo/bar",
+        sizes: [[970, 250]],
+        targeting: { foo: "bar" },
+      },
+      expect.any(Function)
+    );
   });
   it("calls display if GPT has been been enabled", () => {
     const displayMock = jest.fn();
@@ -68,5 +72,19 @@ describe("<Ad />", () => {
     const { unmount } = setup({ destroy: destroyMock });
     unmount();
     expect(destroyMock).toHaveBeenCalledWith("ad-1");
+  });
+  it("sets additional data attribute hooks", () => {
+    const setUpSlotMock = jest.fn((id, ops, onSlotRender) => {
+      onSlotRender({
+        isEmpty: false,
+        creativeId: "123",
+        size: [300, 250],
+      });
+    });
+    setup({ setUpSlot: setUpSlotMock, targeting: { foo: "bar" } });
+    const el = screen.getByTestId("ad");
+    expect(el).toHaveAttribute("data-is-empty", "false");
+    expect(el).toHaveAttribute("data-creative-id", "123");
+    expect(el).toHaveAttribute("data-creative-size", "300x250");
   });
 });
