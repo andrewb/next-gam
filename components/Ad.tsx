@@ -12,7 +12,6 @@ type AdProps = {
   sizes: googletag.MultiSize;
   sizeMapping?: googletag.SizeMappingArray;
   targeting?: AdTargeting;
-  placeholder: [number, number];
 };
 
 const Ad = React.memo(function Ad({
@@ -21,7 +20,6 @@ const Ad = React.memo(function Ad({
   sizes,
   sizeMapping,
   targeting,
-  placeholder,
 }: AdProps) {
   // Get ad context
   const { isGptEnabled, display, destroy, setUpSlot } =
@@ -52,25 +50,9 @@ const Ad = React.memo(function Ad({
     [destroy, id, setUpSlot]
   );
 
-  const [width, height] = placeholder;
-
   return (
     <>
-      <div
-        id={id}
-        style={{ minWidth: `${width}px`, minHeight: `${height}px` }}
-        ref={initialize}
-        data-testid="ad"
-      />
-      <style jsx>{`
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #eee;
-          max-width: 100%;
-        }
-      `}</style>
+      <div id={id} className="ad" ref={initialize} data-testid="ad" />
     </>
   );
 });
