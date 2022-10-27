@@ -18,14 +18,12 @@ const Article: NextPage = () => {
                   id={`ad-large-${id}`}
                   adUnitPath="/6355419/Travel/Europe/France/Paris"
                   sizes={[[728, 90]]}
-                  placeholder={[728, 90]}
                 />
                 <br />
                 <Ad
                   id={`ad-medium-${id}`}
                   adUnitPath="/6355419/Travel/Europe/France/Paris"
                   sizes={[[300, 250]]}
-                  placeholder={[300, 250]}
                 />
               </section>
             );

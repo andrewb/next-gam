@@ -16,7 +16,6 @@ const Toggle: NextPage = () => {
                 id="ad-toggle"
                 adUnitPath="/6355419/Travel/Europe/France/Paris"
                 sizes={[[728, 90]]}
-                placeholder={[728, 90]}
               />
             </section>
           )}
